@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İletişim Group - Backend Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        textarea {
+            height: 120px;
+            resize: vertical;
+        }
+        .btn {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .btn:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+        }
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .alert-error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .server-info {
+            background-color: #e9ecef;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .server-info h3 {
+            margin-top: 0;
+            color: #495057;
+        }
+        .endpoint {
+            background-color: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>İletişim Group Backend Test</h1>
+        
+        <div class="server-info">
+            <h3>🚀 Backend Server Bilgileri</h3>
+            <p><strong>Server URL:</strong> http://92.249.61.10:8000</p>
+            <div class="endpoint">
+                <strong>POST /api/contact</strong> - İletişim formu gönderimi
+            </div>
+            <div class="endpoint">
+                <strong>POST /api/newsletter</strong> - Newsletter aboneliği
+            </div>
+            <div class="endpoint">
+                <strong>GET /health</strong> - Server sağlık kontrolü
+            </div>
+        </div>
+
+        <div id="alertContainer"></div>
+
+        <form id="contactForm">
+            <div class="form-group">
+                <label for="name">Ad Soyad *</label>
+                <input type="text" id="name" name="name" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">E-posta *</label>
+                <input type="email" id="email" name="email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="company">Şirket</label>
+                <input type="text" id="company" name="company">
+            </div>
+
+            <div class="form-group">
+                <label for="subject">Konu</label>
+                <select id="subject" name="subject">
+                    <option value="">Konu seçiniz...</option>
+                    <option value="Genel Bilgi">Genel Bilgi</option>
+                    <option value="Proje Talebi">Proje Talebi</option>
+                    <option value="Destek">Destek</option>
+                    <option value="İş Birliği">İş Birliği</option>
+                    <option value="Diğer">Diğer</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="message">Mesaj *</label>
+                <textarea id="message" name="message" required placeholder="Mesajınızı buraya yazın..."></textarea>
+            </div>
+
+            <button type="submit" class="btn" id="submitBtn">Gönder</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('contactForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('submitBtn');
+            const alertContainer = document.getElementById('alertContainer');
+            
+            // Disable submit button
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Gönderiliyor...';
+            
+            // Clear previous alerts
+            alertContainer.innerHTML = '';
+            
+            // Get form data
+            const formData = new FormData(this);
+            const data = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                company: formData.get('company'),
+                subject: formData.get('subject'),
+                message: formData.get('message')
+            };
+            
+            try {
+                const response = await fetch('http://92.249.61.10:8000/api/contact', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok && result.success) {
+                    // Success
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-success">
+                            ✅ ${result.message}
+                        </div>
+                    `;
+                    this.reset(); // Clear form
+                } else {
+                    // Error
+                    alertContainer.innerHTML = `
+                        <div class="alert alert-error">
+                            ❌ ${result.message || 'Bir hata oluştu.'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                console.error('Form submission error:', error);
+                alertContainer.innerHTML = `
+                    <div class="alert alert-error">
+                        ❌ Bağlantı hatası. Lütfen tekrar deneyin.
+                    </div>
+                `;
+            } finally {
+                // Re-enable submit button
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Gönder';
+            }
+        });
+    </script>
+</body>
+</html>
